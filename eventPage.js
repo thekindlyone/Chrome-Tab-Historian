@@ -4,29 +4,11 @@
 
 
 
-function extractDomain(url) {
-    var domain;
-    //find & remove protocol (http, ftp, etc.) and get domain
-    if (url.indexOf("://") > -1) {
-        domain = url.split('/')[2];
-    }
-    else {
-        domain = url.split('/')[0];
-    }
-    if (domain.indexOf("www.") == 0){ domain=domain.slice(4);}
-    //find & remove port number
-    domain = domain.split(':')[0];
-
-    return domain;
-}
-
-
-
-
 chrome.browserAction.onClicked.addListener(function(tab) {
     var url = tab.url;
     var id = tab.id.toString();
     chrome.storage.local.get(id, function(items){
+        console.log(JSON.stringify(items));
         if(!chrome.runtime.lastError){
             parent_id=items[id].parent_id;
             parent_url=items[id].parent_url;
@@ -49,47 +31,38 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 
     });   
 });
-//     console.log("current domain is "+curr_domain);
-//     chrome.tabs.query({currentWindow: true, active: false, pinned: false}, function(tabs){
-//         for (var i = 0; i < tabs.length; i++) {
-//             if (extractDomain(tabs[i].url)==curr_domain){
-//                 // url=tabs[i].url;
-//                 chrome.tabs.remove(tabs[i].id,function(i)
-//                     {
-//                         return function()
-//                         {
-//                             console.log(tabs[i].url+" closed...");
-//                         };
-//                     }(i)
-//                 );
-//             }
-//         }
-//     });
-// });
+
 
 chrome.tabs.onCreated.addListener(function(tab){
     var tabstring = JSON.stringify(tab, null, 2);
     var id=tab.id.toString();
-    // console.log(tabstring);
     var parent_id=tab["openerTabId"];
     if(parent_id){
-        // console.log(id);
         //get parent tab
         chrome.tabs.get(parent_id, function(parent_tab){
             var url=parent_tab.url;
             //get old value
-            storage=chrome.storage.local.get(function(data){
-                // console.log(JSON.stringify(data)+typeof(data));
-                // add new value
-                data[id]={'parent_id':parent_id,'parent_url':url};
-                //set to storage
-                chrome.storage.local.set(data, function() {
-                    // Notify that we saved.
-                    console.log('Settings saved');
-                });
-                
+            var data={};
+            data[id]={'parent_id':parent_id,'parent_url':url};
+            // console.log(JSON.stringify(data));
+            // chrome.storage.local.getBytesInUse()
+            chrome.storage.local.set(data, function() {
+                // Notify that we saved.
+                console.log('Settings saved');
             });
-
         });
     }
+});
+
+
+chrome.tabs.onRemoved.addListener(function(id,info){
+    var id=id.toString();
+    chrome.storage.local.remove(id, function(){
+        if(chrome.runtime.lastError){
+            console.log('not found');
+        }
+        else{
+            console.log('deleted');
+        }
+    });
 });
