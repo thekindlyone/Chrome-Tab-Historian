@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+
+  "name": "Parent Tab",
+  "description": "This extension tracks where you got the current tab from",
+  "version": "1.0",
+
+  "browser_action": {
+    "default_icon": "icon.png"
+  },
+   "background": {
+    "scripts": ["eventPage.js"],
+    "persistent": false
+  },
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage"
+  ]
+}
